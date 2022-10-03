@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bifas"
+version = "0.1.0"
+authors = [
+  { name="Mike Cheng", email="jaaseoi@gmail.com" },
+]
+description = "Secure ledger system, near real-time payment processing time and market deterministic transaction fee all in BIFAS."
+readme = "README.md"
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/jaaseoi/bifas"
+"Bug Tracker" = "https://github.com/jaaseoi/bifas/issues"
+
+# https://packaging.python.org/en/latest/tutorials/packaging-projects/
+# python3 -m build
+# rm -rf dist
+# python3 -m twine upload --repository testpypi dist/*
+# python3 -m twine upload dist/*
