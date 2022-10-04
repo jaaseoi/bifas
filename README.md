@@ -15,7 +15,7 @@ The source code is currently hosted on GitHub at: https://github.com/jaaseoi/bif
 2.	**Limit the use of helper functions** only to generic operations that are shared among multiple parts of the code.
 3.	**Avoid returning multiple values** from a function, instead consider to **returning a class instance**.
 
-# #Name Conventions
+## Name Conventions
 1.	Always use **snake_case** for **variable** and **function name**, and use **PascalCase** for **class names**, **UPPERCASE** for **constants**.
 2.	Try at all costs to give a proper, **clear name** to your **variables**, **functions**, **arguments**, and **classes**, from which the user can directly understand its purposes.
 3.	Class initialization and function calls should use **named arguments**.
