@@ -12,7 +12,7 @@ class TestBinary(unittest.TestCase):
         answer = "55affbc3b2c2b989f32e3b6cae1ca4bd154a7347adcf380297b484e9d387f5c0"
         self.assertEqual(
             answer,
-            sha256(Binary(x=question)).get_x(data_type="str"),
+            sha256(Binary(x=question)).get_x(data_format="base16"),
         )
 
 if __name__ == "__main__":
