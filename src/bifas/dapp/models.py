@@ -8,12 +8,8 @@ class Account(models.Model):
     """
     Account
     """
-    public_key = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
-        unique=True,
-    )
-    address = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
+    public_key = models.CharField(          # Pay-to-PubKey (P2PK)
+        max_length=LENGTH_OF_256_BITS_FOR_BASE64 // 2,
         unique=True,
         primary_key=True,
     )
