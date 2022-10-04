@@ -1,7 +1,5 @@
 from django.http import HttpResponse
 from django.http import JsonResponse
-import math
-
 
 def index(request):
     return HttpResponse("index")
@@ -28,7 +26,8 @@ def mempool_post(request):
                 amount=float(request.POST.get("amount", -1)),
                 address=Binary(str(request.POST.get("address", None)), data_format="base64"),
                 bounty=float(request.POST.get("bounty", -1)),
-                deadline=int(request.POST.get("deadline", int("inf"))),
+                deadline=int(request.POST.get("deadline", -1)),
+                digital_signature=Binary(str(request.POST.get("digital_signature", None)), data_format="base64"),
             )
         )
     else:

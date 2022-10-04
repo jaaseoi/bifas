@@ -1,14 +1,11 @@
 from bifas.utils.data_structure.binary import Binary
-from bifas.utils.data_structure.date_time import datetime_add_microsecond_time_delta
-import datetime
 from ..CONSTANTS import LIST_OF_OPERATORS
-from django.core.serializers import serialize
 from dapp.models import Mempool
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.shortcuts import render
-from rest_framework import serializers
-import typing
+import time
+import math
 
 def index_page(
     request,
@@ -38,8 +35,32 @@ def create_mempool(
     amount:float=None,
     address:Binary=None,
     bounty:float=None,
-    time_to_live:int=None,               # in microseconds
+    deadline:int=None,
+    digital_signature:Binary=None,
 ) -> bool:
+    """
+    Boolean function to create record for Mempool.
+
+    Validation :
+    * operator must be in the set of LIST_OF_OPERATORS.
+    * amount must be positive float.
+    * bounty must be non-negative float.
+    * deadline must be either 0 or positive integer >= int(current Unix Timestamp)
+
+    Parameters
+    ----------
+    token_id : bifas.utils.data_structure.binary.Binary, default None
+    operator : str, default None
+    amount : float, default None
+    address : bifas.utils.data_structure.binary.Binary, default None
+    bounty : float, default None
+    deadline : int, default None
+    digital_signature : bifas.utils.data_structure.binary.Binary, default None
+
+    Returns
+    -------
+    bool
+    """
     kwargs = {}
     if ((token_id == None) and (type(token_id)==Binary)):
         return False
@@ -66,24 +87,32 @@ def create_mempool(
         return False
     else:
         kwargs["address"] = address.get_x(data_format="base64")
+
     if ((bounty == None) and (type(bounty)==float)):
         return False
     elif (bounty <= 0):
-        # Amount non positive number.
+        # amountt non positive number.
+        return False
+    elif (amount < bounty):
         return False
     else:
         kwargs["bounty"] = bounty
 
-    if ((time_to_live == None) and (type(time_to_live)==int)):
+    if ((deadline == None) and (type(deadline)==int)):
         return False
-    elif (time_to_live <= 0):
-        # Time To Live non positive number.
+    elif (deadline < 0):
+        # deadline negative number.
+        return False
+    elif (deadline != 0) and (deadline <= math.floor(time.time())):
+        # Neither empty nor after current unix time
         return False
     else:
-        kwargs["time_to_live"] = datetime_add_microsecond_time_delta(
-            x=datetime.datetime.now(),
-            delta=time_to_live,
-        )
+        kwargs["deadline"] = deadline
+
+    if ((digital_signature == None) and (type(digital_signature)==Binary)):
+        return False
+    else:
+        kwargs["digital_signature"] = digital_signature.get_x(data_format="base64")
 
     Mempool(**kwargs).save()
     return True
