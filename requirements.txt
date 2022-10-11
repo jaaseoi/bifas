@@ -1,3 +1,4 @@
 typing
+pycryptodome
 base64
 django
