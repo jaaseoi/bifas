@@ -72,7 +72,7 @@ class Binary():
                         x,
                     )
                 )
-    
+
     def get_x(
         self,
         data_format:typing.Literal[
@@ -174,3 +174,20 @@ class Binary():
             return None
         else:
             return int_to_bytes(self.get_x(data_format="int") ^ x2.get_x(data_format="int"))
+
+def init_Binary(
+    x:typing.Union[
+        Binary,
+        bytes,
+        str,
+        int,
+    ]=None,
+    **kwargs,
+) -> Binary:
+    if (type(x) == Binary):
+        return x
+    else:
+        return Binary(
+            x=x,
+            **kwargs,
+        )
