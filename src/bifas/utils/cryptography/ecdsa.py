@@ -7,13 +7,14 @@
 from Crypto.PublicKey import ECC
 from Crypto.Hash import SHA256
 from Crypto.Hash import RIPEMD160
+from Crypto.Signature import eddsa
 from bifas.utils.data_structure.binary import Binary
 
 class ECDSAKeys:
 
     def __init__(self, passphrase=None) -> None:
-        self.private_key_binary, self.public_key_binary = self.generate_key_pairs(passphrase)
-        self.address_binary = self.generate_address(self.public_key_binary)
+        self.private_key, self.public_key = self.generate_key_pairs(passphrase)
+        self.address = self.generate_address(self.public_key)
         pass
 
     def generate_key_pairs(self, passphrase_binary:Binary) -> Binary:
@@ -28,24 +29,34 @@ class ECDSAKeys:
         else:
             ecc_keys = ECC.generate(curve='P-256')
 
-        private_key = ecc_keys.export_key(format='PEM')
-        public_key = ecc_keys.public_key().export_key(format='PEM')
-        private_key_binary = Binary(x=private_key, data_format='ascii')
-        public_key_binary = Binary(x=public_key, data_format='ascii')
+        private_key = ecc_keys.export_key(format='DER')
+        public_key = ecc_keys.public_key().export_key(format='DER')
 
-        return private_key_binary, public_key_binary
+        # private_key_binary = Binary(x=private_key, data_format='utf-8')
+        return private_key, public_key
 
-    def generate_address(self, public_key_binary:Binary) -> Binary:
+    def generate_address(self, public_key:Binary) -> Binary:
         pass
 
-    def sign(self, private_key_binary:Binary, message_binary:Binary) -> Binary:
-        pass
+    def sign(self, private_key:Binary, message:Binary) -> Binary:
+        key = ECC.import_private_key(private_key)
+        signer = eddsa.new(key, mode='rfc8032')
+        signature = eddsa.sign(message)
+        return signature
 
-    def verify_signature(self, public_key_binary:Binary, message_binary:Binary) -> bool:
-        pass
+    def verify_signature(self, public_key:Binary, message:Binary, signature:Binary) -> bool:
+        key = ECC.import_public_key(public_key)
+        verifier = eddsa.new(key, mode='rfc8032')
+        try:
+            verifier.verify(message, signature)
+            return True
+        except ValueError:
+            return False
+
 
 # Quick test
 passphrase = b"For instance, lets say you were planning to build a cheap MAC by concatenating a secret key to a public message m (bad idea!"
 keys = ECDSAKeys(passphrase)
-print(keys.private_key)
+print(type(keys.private_key))
 print(keys.public_key)
+# keys.sign(keys.private_key, "Hello World!")
