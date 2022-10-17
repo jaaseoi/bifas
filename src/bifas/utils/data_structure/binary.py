@@ -24,7 +24,7 @@ def int_to_bytes(
 
 class Binary():
     """
-    Generic class for handling binary data.
+    Generic interface class for handling binary data from bytes, base64, base16, utf-8, ascii and int.
 
     See Also
     --------
@@ -40,10 +40,11 @@ class Binary():
         data_format:typing.Literal[
             "bytes",
             "base64",
+            "base16",
             "utf-8",
             "ascii",
             "int",
-        ]="base64",
+        ]="bytes",
         endianness:typing.Literal["big","little"]="big",
         signed_flag=False,
     ) -> None:
@@ -79,6 +80,8 @@ class Binary():
             "bytes",
             "base64",
             "base16",
+            "utf-8",
+            "ascii",
             "int",
         ]="bytes"
     ) -> typing.Union[
@@ -95,6 +98,8 @@ class Binary():
             "bytes",
             "base64",
             "base16",
+            "utf-8",
+            "ascii",
             "int",
         ], default "bytes"
 
@@ -131,8 +136,18 @@ class Binary():
             elif (data_format == "base64"):
                 return base64.b64encode(self.__x).decode('ascii')
             elif (data_format == "base16"):
-                return format(int.from_bytes(bytes=self.__x,byteorder=self.endianness, signed=self.signed_flag), "x")
-            
+                return format(
+                    int.from_bytes(
+                        bytes=self.__x,
+                        byteorder=self.endianness,
+                        signed=self.signed_flag,
+                    ),
+                    "x",
+                )
+            elif (data_format == "utf-8"):
+                return self.__x.decode("utf-8")
+            elif (data_format == "ascii"):
+                return self.__x.decode("ascii")
             elif (data_format == "int"):
                 return int.from_bytes(bytes=self.__x,byteorder=self.endianness, signed=self.signed_flag)
             else:
@@ -142,38 +157,6 @@ class Binary():
                         data_format,
                     )
                 )
-    
-    def __add__(self, x2) -> bytes:
-        """
-        XOR logical operation on two binary number.
-
-        This function simply wraps the ``+`` operator to perform XOR logical operation on two Binary class objects.
-
-        Parameters
-        ----------
-        self :
-            Operand A.
-        x2 : Binary
-            Operand B.
-
-        Returns
-        -------
-        bytes
-            The XOR of ``self`` and ``x2``.
-
-        See Also
-        --------
-
-        Examples
-        --------
-        >>> from utils.data_structure.binary import Binary
-        >>> Binary(b"\x6b") + Binary(b"\x04\x5e") == b"\x04\x35"
-        True
-        """
-        if ((self.__x == None) or (x2.get_x(data_format="int") == None)):
-            return None
-        else:
-            return int_to_bytes(self.get_x(data_format="int") ^ x2.get_x(data_format="int"))
 
 def init_Binary(
     x:typing.Union[

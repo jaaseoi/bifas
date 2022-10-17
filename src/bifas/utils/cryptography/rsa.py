@@ -15,13 +15,11 @@ class PublicKey():
         self,
         message:Binary,
     ) -> Binary:
-        data = message.get_x(data_format="bytes")
-        key = pycryptodome_RSA.import_key(self.key.get_x(data_format="bytes"))
         sessionKey = get_random_bytes(16)
-        cipherRSA = PKCS1_OAEP.new(key)
+        cipherRSA = PKCS1_OAEP.new(pycryptodome_RSA.import_key(self.key.get_x(data_format="bytes")))
         encSessionKey = cipherRSA.encrypt(sessionKey)
         cipherAES = AES.new(sessionKey, AES.MODE_EAX)
-        ciphertext, tag = cipherAES.encrypt_and_digest(data)
+        ciphertext, tag = cipherAES.encrypt_and_digest(message.get_x(data_format="bytes"))
         return init_Binary(
             x= encSessionKey + cipherAES.nonce + tag  + ciphertext,
         )
