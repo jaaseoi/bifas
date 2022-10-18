@@ -1,6 +1,8 @@
 import typing
 import math
 import base64
+import hashlib
+from Crypto.Hash import SHA256
 
 from bifas.utils.data_structure.date_time import current_date_time_str
 
@@ -157,6 +159,46 @@ class Binary():
                         data_format,
                     )
                 )
+    
+    def hash(
+        self,
+        algo:typing.Literal["SHA-256"]="SHA-256",
+        class_type:typing.Literal[
+            "Binary",
+            "Crypto.Hash.SHA256.SHA256Hash",
+        ]="Binary",
+    ):
+        if (algo == "SHA-256"):
+            __tmp = hashlib.sha256(
+                string=self.__x,
+            ).digest()
+        else:
+            raise Exception(
+                "{} : [CRITICAL] bifas.utils.data_structure.binary.Binary.hash() unknown algo = {}".format(
+                    current_date_time_str(),
+                    algo,
+                )
+            )
+        if (class_type == "Binary"):
+            return Binary(x=__tmp, data_format="bytes")
+        elif (class_type == "Crypto.Hash.SHA256.SHA256Hash"):
+            return SHA256.new(data=__tmp)
+        else:
+            raise Exception(
+                "{} : [CRITICAL] bifas.utils.data_structure.binary.Binary.hash() unknown class_type = {}".format(
+                    current_date_time_str(),
+                    class_type,
+                )
+            )
+    
+    def __add__(self, b):
+        return Binary(
+            x=self.__x + b.get_x(data_format="bytes"),
+            data_format="bytes"
+        )
+    
+    def __iadd__(self, b):
+        return self.__add__(b)
 
 def init_Binary(
     x:typing.Union[

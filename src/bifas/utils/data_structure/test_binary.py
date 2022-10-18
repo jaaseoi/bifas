@@ -48,5 +48,29 @@ class TestBinary(unittest.TestCase):
         # int -> base16
         self.assertEqual(Binary(97, data_format="int").get_x(data_format="base16"), "61")
 
+    def test_hash_hard_code_case(self):
+        question = b"Blockchain International Financial Assets System (BIFAS)"
+        answer = "55affbc3b2c2b989f32e3b6cae1ca4bd154a7347adcf380297b484e9d387f5c0"
+        self.assertEqual(
+            answer,
+            Binary(x=question).hash(algo="SHA-256",class_type="Binary").get_x(data_format="base16"),
+        )
+    
+    def test_add_hard_code_case(self):
+        a = Binary(x=b"Blockchain International ",data_format="bytes")
+        b = Binary(x=b"Financial Assets System (BIFAS)",data_format="bytes")
+        self.assertEqual(
+            b"Blockchain International Financial Assets System (BIFAS)",
+            (a + b).get_x(data_format="bytes"),
+        )
+    
+    def test_iadd_hard_code_case(self):
+        a = Binary(x=b"Blockchain International ",data_format="bytes")
+        a += Binary(x=b"Financial Assets System (BIFAS)",data_format="bytes")
+        self.assertEqual(
+            b"Blockchain International Financial Assets System (BIFAS)",
+            a.get_x(data_format="bytes"),
+        )
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,4 @@
 from Crypto.PublicKey import ECC
-from Crypto.Hash import SHA256
 from Crypto.Signature import DSS
 from bifas.utils.data_structure.binary import Binary
 import os
@@ -58,14 +57,7 @@ class ECDSA:
             self.passphrase = passphrase
         __ecc_keys = ECC.construct(
             curve="P-256",
-            d=int(
-                SHA256.new(
-                    data=self.passphrase.get_x(
-                        data_format="bytes",
-                    ),
-                ).hexdigest(),
-                base=16,
-            ),
+            d=passphrase.hash(algo="SHA-256", class_type="Binary").get_x(data_format="int"),
         )
         self.private_key = Binary(
             x=__ecc_keys.export_key(format="PEM"),
@@ -86,7 +78,10 @@ class ECDSA:
                 key=ECC.import_key(self.private_key.get_x(data_format="ascii")),
                 mode=MODE,
             ).sign(
-                msg_hash=SHA256.new(message.get_x(data_format="bytes")),
+                msg_hash=message.hash(
+                    algo="SHA-256",
+                    class_type="Crypto.Hash.SHA256.SHA256Hash",
+                ),
             ),
             data_format="bytes",
         )
@@ -102,7 +97,10 @@ class ECDSA:
                 key=ECC.import_key(public_key.get_x(data_format="ascii")),
                 mode=MODE,
             ).verify(
-                msg_hash=SHA256.new(message.get_x(data_format="bytes")),
+                msg_hash=message.hash(
+                    algo="SHA-256",
+                    class_type="Crypto.Hash.SHA256.SHA256Hash",
+                ),
                 signature=signature.get_x(data_format="bytes"),
             )
             return True
