@@ -67,6 +67,7 @@ class ECDSA:
             x=__ecc_keys.public_key().export_key(format="PEM"),
             data_format="ascii",
         )
+        self.address = self.public_key.hash(algo="SHA-256")
         pass
 
     def sign(

@@ -1,15 +1,28 @@
+from random import choices
 from django.db import models
-from .CONSTANTS import LENGTH_OF_256_BITS_FOR_BASE64
-
-# deadline = models.IntegerField()      # Unix timestamps
+from .CONSTANTS import (
+    LENGTH_OF_256_BITS_TO_BYTES,
+)
 
 # -------------------------------- Account --------------------------------
 class Account(models.Model):
     """
     Account
+
+    Derived attribute :
+        birthblock :
+            SELECT birth_block_id
+            FROM UTXO
+            WHERE sender = {{ Account }}
+            LIMIT 1
+
+    Exploratory data analysis :
+        no_of_accounts :
+            SELECT COUNT(*) FROM Account
     """
-    public_key = models.CharField(          # Pay-to-PubKey (P2PK)
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64 // 2,
+    # Pay-to-PubKey (P2PK)
+    address = models.BinaryField(
+        max_length=LENGTH_OF_256_BITS_TO_BYTES,
         unique=True,
         primary_key=True,
     )
@@ -18,30 +31,45 @@ class Account(models.Model):
 class Token(models.Model):
     """
     Token
-    """
-    creator = models.ForeignKey(
-        Account,
-        on_delete=models.CASCADE,
-    )
 
-    token_id = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
+    Derived attribute :
+        creator :
+            SELECT sender
+            FROM UTXO
+            WHERE token = {{ Token }}
+            LIMIT 1
+    
+    Exploratory data analysis :
+        no_of_tokens :
+            SELECT COUNT(*) FROM Token
+    """
+    # Hash value of Terms of Services (TOC)
+    token_hash = models.BinaryField(
+        max_length=LENGTH_OF_256_BITS_TO_BYTES,
+        unique=True,
         primary_key=True,
-    )
-    info_link = models.URLField()
-    info_hash = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
-    )
-    info_digital_signature = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
     )
 
 # -------------------------------- UTXO --------------------------------
 class UTXO(models.Model):
     """
     UTXO
+
+    Exploratory data analysis :
+        debit_ledger :
+            SELECT sender, token, amount
+            FROM UTXO
+            WHERE receiver = {{ Account }}
+        credit_ledger :
+            SELECT receiver, token, amount
+            FROM UTXO
+            WHERE sender = {{ Account }}
     """
-    owner = models.ForeignKey(
+    sender = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+    )
+    receiver = models.ForeignKey(
         Account,
         on_delete=models.CASCADE,
     )
@@ -49,87 +77,69 @@ class UTXO(models.Model):
         Token,
         on_delete=models.CASCADE,
     )
-
     amount = models.FloatField()
+    birth_block_id = models.IntegerField()
 
 # -------------------------------- Block --------------------------------
 class Block(models.Model):
     """
     Block
     """
-    miner = models.ForeignKey(
-        Account,
-        on_delete=models.CASCADE,
-    )
-
     block_id = models.AutoField(
         primary_key=True,
     )
+    previous_hash = models.BinaryField(
+        max_length=LENGTH_OF_256_BITS_TO_BYTES,
+    )
+    version_number = models.IntegerField()
     time_stamp = models.DateTimeField()
-    previous_hash = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
-    )
-    nonce = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
-    )
-    digital_signature = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
+    nonce = models.BinaryField(
+        max_length=LENGTH_OF_256_BITS_TO_BYTES,
     )
 
 # -------------------------------- BlockCommand --------------------------------
 class BlockCommand(models.Model):
     """
     BlockCommand
+    
+    Validation :
+        unique (block_id, command_id) :
+            SELECT block, command_id
+            FROM BlockCommand
+            GROUP BY block, command
+            HAVING COUNT(*) > 1
+        valid operator :
+            SELECT block, command_id
+            FROM BlockCommand
+            WHERE operator < 0
     """
     block = models.ForeignKey(
         Block,
         on_delete=models.CASCADE,
     )
-
-    command_id = models.AutoField(
-        primary_key=True,
+    class Operator(models.IntegerChoices):
+        INVALID = -1
+        # Create new token = Pay to yourself or others
+        PAY = 0, 
+        LOCK = 1
+        ACQUIRE = 2
+    operator = models.IntegerChoices(
+        default=Operator.INVALID,
+        choices=Operator.choices,
     )
-    time_stamp = models.DateTimeField()
-    token_id = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
+    token_id = models.BinaryField(
+        max_length=LENGTH_OF_256_BITS_TO_BYTES,
     )
-    operator = models.CharField(
-        max_length=2,
+    sender_address = models.BinaryField(
+        max_length=LENGTH_OF_256_BITS_TO_BYTES,
     )
-    amount = models.FloatField()
-    address = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
-    )
-    bounty = models.FloatField()
-    deadline = models.IntegerField()
-    digital_signature = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
-    )
-
-# -------------------------------- Mempool --------------------------------
-class Mempool(models.Model):
-    """
-    Mempool refers to a waiting room that collects a valid pending (unconfirmed) transaction until it is processed & added to the block.
-    Mempool is isolated without any foreign keys because records are unverified by miners.
-    """
-    mempool_id = models.AutoField(
-        primary_key=True,
-    )
-    time_stamp = models.DateTimeField(
-        auto_now = True,
-    )
-    token_id = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
-    )
-    operator = models.CharField(
-        max_length=2,
+    receiver_address = models.BinaryField(
+        max_length=LENGTH_OF_256_BITS_TO_BYTES,
     )
     amount = models.FloatField()
-    address = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
-    )
     bounty = models.FloatField()
-    deadline = models.IntegerField()
-    digital_signature = models.CharField(
-        max_length=LENGTH_OF_256_BITS_FOR_BASE64,
+    # Unix timestamps
+    settlement_datetime = models.IntegerField()
+    digital_signature = models.BinaryField(
+        max_length=LENGTH_OF_256_BITS_TO_BYTES,
     )

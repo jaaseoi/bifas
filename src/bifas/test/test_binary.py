@@ -1,12 +1,8 @@
-# python3 -m unittest bifas.utils.data_structure.test_binary
-
+# python3 -m unittest discover -s "./bifas/test" -p "test_*.py"
+# python3 -m unittest bifas.test.test_binary.TestBinary
 import unittest
 
-from bifas.utils.data_structure.binary import Binary, int_to_bytes
-from bifas.utils.data_structure.date_time import current_date_time_str
-
-NUM_OF_BYTE = 2
-NUM_OF_Trials = 10 ** 4
+from bifas.utils.data_structure.binary import Binary
 
 class TestBinary(unittest.TestCase):
     """
@@ -56,7 +52,7 @@ class TestBinary(unittest.TestCase):
             Binary(x=question).hash(algo="SHA-256",class_type="Binary").get_x(data_format="base16"),
         )
     
-    def test_add_hard_code_case(self):
+    def test__add__hard_code_case(self):
         a = Binary(x=b"Blockchain International ",data_format="bytes")
         b = Binary(x=b"Financial Assets System (BIFAS)",data_format="bytes")
         self.assertEqual(
@@ -64,12 +60,22 @@ class TestBinary(unittest.TestCase):
             (a + b).get_x(data_format="bytes"),
         )
     
-    def test_iadd_hard_code_case(self):
+    def test__iadd__hard_code_case(self):
         a = Binary(x=b"Blockchain International ",data_format="bytes")
         a += Binary(x=b"Financial Assets System (BIFAS)",data_format="bytes")
         self.assertEqual(
             b"Blockchain International Financial Assets System (BIFAS)",
             a.get_x(data_format="bytes"),
+        )
+    
+    def test_size_and__len__hard_code_case(self):
+        self.assertEqual(
+            len(Binary(x=b"12345",data_format="bytes")),
+            5,
+        )
+        self.assertEqual(
+            Binary(x=b"MIKE",data_format="bytes").size(),
+            4,
         )
 
 if __name__ == "__main__":
