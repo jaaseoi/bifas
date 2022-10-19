@@ -6,25 +6,26 @@ from Crypto.Hash import SHA256
 
 from bifas.utils.data_structure.date_time import current_date_time_str
 
-def int_to_bytes(
-    x:int = 0,
-    endianness:typing.Literal["big","little"]="big",
-    signed_flag=False,
-) -> bytes:
-    if (x == 0):
-        return b"\x00"
-    return x.to_bytes(
-        length=math.ceil(
-            math.log(
-                x + 1,  # prevent  boundary case of 256, 65536, ...
-                2 ** 8,
-            ),
-        ),
-        byteorder=endianness,
-        signed=signed_flag,
-    )
-
 class Binary():
+    def __int_to_bytes(
+        self,
+        x:int = 0,
+        endianness:typing.Literal["big","little"]="big",
+        signed_flag=False,
+    ) -> bytes:
+        if (x == 0):
+            return b"\x00"
+        return x.to_bytes(
+            length=math.ceil(
+                math.log(
+                    x + 1,  # prevent  boundary case of 256, 65536, ...
+                    2 ** 8,
+                ),
+            ),
+            byteorder=endianness,
+            signed=signed_flag,
+        )
+
     """
     Generic interface class for handling binary data from bytes, base64, base16, utf-8, ascii and int.
 
@@ -61,13 +62,13 @@ class Binary():
                     self.__x = base64.b64decode(x)
                 elif (data_format == "base16"):
                     x = int(x, 16)
-                    self.__x = int_to_bytes(x)
+                    self.__x = self.__int_to_bytes(x)
                 elif (data_format == "utf-8"):
                     self.__x = bytes(x, "utf-8")
                 elif (data_format == "ascii"):
                     self.__x = bytes(x, "ascii")
             elif (type(x) == int):
-                self.__x = int_to_bytes(x)
+                self.__x = self.__int_to_bytes(x)
             else:
                 raise Exception(
                     "{} : [CRITICAL] bifas.utils.data_structure.binary.Binary.__init__() unknown type of x = {}".format(
@@ -199,6 +200,12 @@ class Binary():
     
     def __iadd__(self, b):
         return self.__add__(b)
+    
+    def size(self) -> int:
+        return len(self.__x)
+    
+    def __len__(self) -> int:
+        return self.size()
 
 def init_Binary(
     x:typing.Union[
